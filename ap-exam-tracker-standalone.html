@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="応用情報 午前対策" />
+<meta name="theme-color" content="#0A101F" />
+<title>応用情報 午前対策｜学習進捗トラッカー</title>
+<style>
+  :root{
+    --bg:#0A101F; --bgGrad:linear-gradient(180deg,#0A101F 0%,#0D1526 100%);
+    --card:#131C33; --cardAlt:#182240; --border:#22304F;
+    --text:#E9EEFA; --textMuted:#8B9AB8;
+    --accent:#4C8DFF; --accentSoft:#1B2C4F;
+    --success:#34D399; --successSoft:#123328;
+    --warning:#FBBF24; --warningSoft:#3A2E10;
+    --danger:#F87171; --navBg:#0D1526;
+    --shadow:0 8px 24px rgba(0,0,0,0.35);
+  }
+  body.light{
+    --bg:#EEF3FC; --bgGrad:linear-gradient(180deg,#EEF3FC 0%,#E4ECFB 100%);
+    --card:#FFFFFF; --cardAlt:#F5F8FE; --border:#DCE6F7;
+    --text:#0F1B33; --textMuted:#5A6B8C;
+    --accent:#2F6FED; --accentSoft:#DCE8FF;
+    --success:#0E9F6E; --successSoft:#DEF7EC;
+    --warning:#B45309; --warningSoft:#FEF3C7;
+    --danger:#DC2626; --navBg:#FFFFFF;
+    --shadow:0 8px 24px rgba(47,111,237,0.12);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bgGrad); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+    min-height:100vh;
+  }
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;padding:0;}
+  input,textarea{font:inherit;color:inherit;}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+  #app{display:flex;flex-direction:column;min-height:100vh;}
+  .header{position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--navBg) 92%, transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--border);
+    padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
+  .headerTitle{font-size:15px;font-weight:800;}
+  .headerSub{font-size:11px;color:var(--textMuted);}
+  .iconBtn{width:36px;height:36px;border-radius:10px;background:var(--cardAlt);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;}
+  .headerBtns{display:flex;gap:8px;}
+  .main{flex:1;padding:16px 14px 96px;max-width:480px;width:100%;margin:0 auto;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;box-shadow:var(--shadow);}
+  .col{display:flex;flex-direction:column;gap:14px;}
+  .row{display:flex;justify-content:space-between;align-items:center;}
+  .muted{color:var(--textMuted);}
+  .chip{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--cardAlt);color:var(--text);border:1px solid var(--border);}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:999px;margin-right:6px;}
+  .progressTrack{width:100%;border-radius:999px;background:var(--cardAlt);overflow:hidden;border:1px solid var(--border);}
+  .progressFill{height:100%;border-radius:999px;transition:width .4s ease;background:var(--accent);}
+  .bottomNav{position:fixed;bottom:0;left:0;right:0;background:color-mix(in srgb, var(--navBg) 96%, transparent);
+    backdrop-filter:blur(10px);border-top:1px solid var(--border);display:flex;justify-content:center;z-index:20;
+    padding-bottom:env(safe-area-inset-bottom);}
+  .bottomNavInner{display:flex;width:100%;max-width:480px;}
+  .navBtn{flex:1;padding:10px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+  .navLabel{font-size:10.5px;font-weight:500;}
+  .taskItem{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--cardAlt);
+    border:1px solid var(--border);width:100%;text-align:left;}
+  .checkbox{width:20px;height:20px;border-radius:6px;border:2px solid var(--accent);flex-shrink:0;}
+  .statBox{flex:1;text-align:center;background:var(--cardAlt);border-radius:14px;padding:12px 4px;border:1px solid var(--border);}
+  .statVal{font-size:20px;font-weight:800;color:var(--accent);}
+  .statLabel{font-size:11px;color:var(--textMuted);margin-top:2px;}
+  .field{width:100%;background:var(--cardAlt);border:1px solid var(--border);border-radius:10px;padding:9px 10px;font-size:13px;color:var(--text);}
+  .textarea{width:100%;background:var(--cardAlt);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:13.5px;color:var(--text);resize:vertical;}
+  .modalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:50;}
+  .modalSheet{background:var(--bg);width:100%;max-width:480px;max-height:85vh;overflow-y:auto;border-radius:20px 20px 0 0;
+    padding:18px;border:1px solid var(--border);border-bottom:none;padding-bottom:calc(18px + env(safe-area-inset-bottom));}
+  .subjectRow{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:12px;
+    background:var(--cardAlt);border:1.5px solid var(--border);width:100%;text-align:left;margin-bottom:8px;}
+  .subjectRow.sel{background:var(--accentSoft);border-color:var(--accent);}
+  .btnPrimary{width:100%;padding:13px 0;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;font-size:14.5px;}
+  .periodCard{width:100%;text-align:left;margin-bottom:12px;display:block;}
+  .subjectCard{margin-bottom:10px;overflow:hidden;padding:0 !important;}
+  .subjectHead{width:100%;text-align:left;padding:14px;}
+  .subjectBody{padding:0 14px 16px;display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--border);padding-top:14px;margin-top:0;}
+  .quickBtn{flex:1;padding:10px 0;border-radius:12px;font-weight:700;font-size:14px;}
+  .chart{display:flex;align-items:flex-end;gap:4px;height:150px;padding-top:8px;}
+  .barWrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+  .bar{width:100%;border-radius:4px 4px 0 0;background:var(--accent);min-height:2px;}
+  .barLabel{font-size:9px;color:var(--textMuted);margin-top:4px;}
+  .toggleSwitch{width:50px;height:28px;border-radius:999px;border:1px solid var(--border);position:relative;}
+  .toggleKnob{position:absolute;top:2px;width:22px;height:22px;border-radius:999px;background:#fff;transition:left .2s ease;}
+  .signToggle{display:flex;border-radius:10px;border:1px solid var(--border);overflow:hidden;flex-shrink:0;}
+  .signBtn{width:38px;font-weight:800;font-size:16px;padding:9px 0;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ============================================================
+   固定データ
+   ============================================================ */
+const SUBJECTS = [
+  { id:"base", name:"基礎理論", color:"#60A5FA" },
+  { id:"algo", name:"アルゴリズムとプログラミング", color:"#34D399" },
+  { id:"hardware", name:"ハードウェアとコンピュータ構成要素", color:"#FBBF24" },
+  { id:"sysconfig", name:"システム構成要素", color:"#FB923C" },
+  { id:"software", name:"ソフトウェア", color:"#A78BFA" },
+  { id:"database", name:"データベース", color:"#38BDF8" },
+  { id:"network", name:"ネットワーク", color:"#4ADE80" },
+  { id:"security", name:"セキュリティ", color:"#F87171" },
+  { id:"sysdev", name:"システム開発技術", color:"#F472B6" },
+  { id:"management", name:"マネジメント", color:"#93C5FD" },
+  { id:"strategy", name:"ストラテジ", color:"#2DD4BF" },
+];
+const SUBJECT_MAP = Object.fromEntries(SUBJECTS.map(s=>[s.id,s]));
+
+const PERIODS = [
+  {id:0,start:"2026-07-13",end:"2026-07-19"},
+  {id:1,start:"2026-07-20",end:"2026-07-26"},
+  {id:2,start:"2026-07-27",end:"2026-08-02"},
+  {id:3,start:"2026-08-03",end:"2026-08-09"},
+  {id:4,start:"2026-08-10",end:"2026-08-16"},
+  {id:5,start:"2026-08-17",end:"2026-08-23"},
+  {id:6,start:"2026-08-24",end:"2026-08-30"},
+  {id:7,start:"2026-08-31",end:"2026-09-06"},
+];
+
+const STATUS_LIST = ["未着手","進行中","完了"];
+const STORAGE_KEY = "ap-tracker-state-v1";
+
+function defaultState(){
+  return {
+    periodAssignments:{0:[],1:[],2:[],3:[],4:[],5:[],6:[],7:["security","sysdev","management","strategy"]},
+    subjects: Object.fromEntries(SUBJECTS.map(s=>[s.id,{textbook:"未着手",pastExam:"未着手",memo:""}])),
+    examRecords:{},
+    examDate:null,
+    darkMode:true,
+  };
+}
+
+/* ============================================================
+   状態の読み込み・保存（localStorage = Safariでも永続化）
+   ============================================================ */
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    const d = defaultState();
+    return {
+      ...d, ...parsed,
+      subjects:{...d.subjects, ...(parsed.subjects||{})},
+      periodAssignments:{...d.periodAssignments, ...(parsed.periodAssignments||{})},
+      examRecords: parsed.examRecords || {},
+    };
+  }catch(e){ return defaultState(); }
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE)); }catch(e){ /* 保存失敗時は無視 */ }
+}
+
+let STATE = loadState();
+let UI = { tab:"home", settingsOpen:false, editingPeriod:null, periodSelection:[], openSubject:null, sign:1 };
+
+/* ============================================================
+   ユーティリティ
+   ============================================================ */
+function toDateStr(d){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0"); return `${y}-${m}-${day}`; }
+function todayStr(){ return toDateStr(new Date()); }
+function parseDate(s){ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
+function fmtShort(s){ const d=parseDate(s); return `${d.getMonth()+1}/${d.getDate()}`; }
+function getCurrentPeriod(){ const t=todayStr(); return PERIODS.find(p=>t>=p.start&&t<=p.end) || null; }
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  const target = parseDate(dateStr);
+  const now = new Date(); const t0 = new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  return Math.ceil((target-t0)/(1000*60*60*24));
+}
+function statusScore(s){ return s==="完了"?1:s==="進行中"?0.5:0; }
+function nextStatus(s){ return STATUS_LIST[(STATUS_LIST.indexOf(s)+1)%STATUS_LIST.length]; }
+function getWeekRange(period){
+  if(!period){ const now=new Date(); const end=toDateStr(now); const sd=new Date(now); sd.setDate(sd.getDate()-6); return {start:toDateStr(sd),end}; }
+  return {start:period.start, end:period.end};
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ============================================================
+   アイコン（シンプルなラインSVG）
+   ============================================================ */
+function icon(name, size=18, color="currentColor"){
+  const s=`width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
+  const paths = {
+    home:`<path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>`,
+    calendar:`<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="3" y1="10" x2="21" y2="10"/>`,
+    book:`<path d="M12 6C10 4.5 6 4 3 4v14c3 0 7 .5 9 2 2-1.5 6-2 9-2V4c-3 0-7 .5-9 2z"/><line x1="12" y1="6" x2="12" y2="20"/>`,
+    chart:`<line x1="4" y1="20" x2="4" y2="12"/><line x1="10" y1="20" x2="10" y2="6"/><line x1="16" y1="20" x2="16" y2="14"/><line x1="4" y1="20" x2="20" y2="20"/>`,
+    settings:`<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>`,
+    sun:`<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/><line x1="4.9" y1="4.9" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.1" y2="19.1"/><line x1="4.9" y1="19.1" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.1" y2="4.9"/>`,
+    moon:`<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`,
+    plus:`<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>`,
+    check:`<polyline points="20 6 9 17 4 12"/>`,
+    x:`<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`,
+    chevronRight:`<polyline points="9 6 15 12 9 18"/>`,
+    flame:`<path d="M12 2c1 3-2 4-2 7a4 4 0 1 0 8 0c0-1-.5-2-1-3 1 2 2 3 2 5a6 6 0 1 1-12 0c0-4 3-5 5-9z"/>`,
+  };
+  return `<svg ${s}>${paths[name]||""}</svg>`;
+}
+
+/* ============================================================
+   派生データ計算
+   ============================================================ */
+function computeTodayTasks(){
+  const cp = getCurrentPeriod();
+  if(!cp) return [];
+  const ids = STATE.periodAssignments[cp.id] || [];
+  const tasks = [];
+  ids.forEach(sid=>{
+    const subj = STATE.subjects[sid]; if(!subj) return;
+    const name = SUBJECT_MAP[sid].name;
+    if(subj.textbook!=="完了") tasks.push({key:sid+"-tb", subjectId:sid, field:"textbook", label:`${name}　参考書`});
+    if(subj.pastExam!=="完了") tasks.push({key:sid+"-pe", subjectId:sid, field:"pastExam", label:`${name}　分野別過去問`});
+  });
+  return tasks;
+}
+function computeStats(){
+  const cp = getCurrentPeriod();
+  const scores = SUBJECTS.map(s=>{ const d=STATE.subjects[s.id]; return statusScore(d.textbook)+statusScore(d.pastExam); });
+  const overallProgress = Math.round((scores.reduce((a,b)=>a+b,0)/(SUBJECTS.length*2))*100);
+  const t = todayStr();
+  const todayCount = STATE.examRecords[t] || 0;
+  const {start,end} = getWeekRange(cp);
+  const weekCount = Object.entries(STATE.examRecords).filter(([d])=>d>=start&&d<=end).reduce((s,[,v])=>s+v,0);
+  const totalCount = Object.values(STATE.examRecords).reduce((a,b)=>a+b,0);
+  return {overallProgress, todayCount, weekCount, totalCount, currentPeriod:cp};
+}
+
+/* ============================================================
+   状態更新アクション
+   ============================================================ */
+function cycleStatus(subjectId, field){
+  STATE.subjects[subjectId][field] = nextStatus(STATE.subjects[subjectId][field]);
+  saveState(); render();
+}
+function toggleTask(subjectId, field){
+  STATE.subjects[subjectId][field] = "完了";
+  saveState(); render();
+}
+function updateMemo(subjectId, memo){
+  STATE.subjects[subjectId].memo = memo;
+  saveState();
+}
+function addRecord(date, delta){
+  const cur = STATE.examRecords[date] || 0;
+  const next = Math.max(0, cur+delta);
+  STATE.examRecords[date] = next;
+  saveState(); render();
+}
+function setExamDate(d){ STATE.examDate = d || null; saveState(); render(); }
+function toggleDark(){ STATE.darkMode = !STATE.darkMode; saveState(); render(); }
+function resetAll(){ STATE = defaultState(); saveState(); UI = {tab:"home",settingsOpen:false,editingPeriod:null,periodSelection:[],openSubject:null,sign:1}; render(); }
+
+/* ============================================================
+   画面ごとの描画関数
+   ============================================================ */
+function renderHome(){
+  const stats = computeStats();
+  const cp = stats.currentPeriod;
+  const days = daysUntil(STATE.examDate);
+  const tasks = computeTodayTasks();
+  const assigned = cp ? (STATE.periodAssignments[cp.id]||[]) : [];
+
+  return `
+  <div class="col">
+    <div class="card" style="background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 13%, transparent), var(--card));">
+      ${STATE.examDate ? `
+        <div style="display:flex;align-items:baseline;gap:8px;">
+          <span style="font-size:13px;" class="muted">試験まであと</span>
+          <span class="mono" style="font-size:40px;font-weight:800;color:var(--accent);line-height:1;">${days}</span>
+          <span style="font-size:13px;" class="muted">日</span>
+        </div>` : `
+        <div style="font-size:13px;" class="muted">試験日が未設定です。右上の設定から登録できます（2026年度前期試験は2026年11月頃実施予定・詳細未発表）。</div>
+      `}
+      <div style="margin-top:10px;">
+        <div class="row" style="font-size:12px;margin-bottom:6px;"><span class="muted">全体進捗率</span><span style="font-weight:700;">${stats.overallProgress}%</span></div>
+        <div class="progressTrack" style="height:12px;"><div class="progressFill" style="width:${stats.overallProgress}%;height:100%;"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="muted" style="font-size:12px;margin-bottom:8px;">現在学習中の分野${cp?` （${fmtShort(cp.start)}〜${fmtShort(cp.end)}）`:""}</div>
+      ${assigned.length>0 ? `
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${assigned.map(sid=>`<span class="chip" style="border-color:${SUBJECT_MAP[sid].color}66;"><span class="dot" style="background:${SUBJECT_MAP[sid].color};"></span>${esc(SUBJECT_MAP[sid].name)}</span>`).join("")}
+        </div>` : `<div class="muted" style="font-size:13px;">この期間に割り当てられた分野がありません。「スケジュール」タブで設定してください。</div>`}
+    </div>
+
+    <div class="card">
+      <div class="muted" style="font-size:12px;margin-bottom:8px;">次にやること</div>
+      <div style="font-size:15px;font-weight:700;">${tasks.length>0 ? esc(tasks[0].label) : "本日のタスクは完了です 🎉"}</div>
+    </div>
+
+    <div class="card">
+      <div class="muted" style="font-size:12px;margin-bottom:10px;">今日やること</div>
+      ${tasks.length===0 ? `<div class="muted" style="font-size:13px;">すべて完了しています。お疲れさまでした。</div>` : `
+        <div class="col" style="gap:8px;">
+          ${tasks.map(t=>`
+            <button class="taskItem" data-act="toggleTask" data-subject="${t.subjectId}" data-field="${t.field}">
+              <span class="checkbox"></span>
+              <span style="font-size:14px;font-weight:500;">${esc(t.label)}</span>
+            </button>
+          `).join("")}
+        </div>
+      `}
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:flex-start;gap:6px;font-size:12px;margin-bottom:10px;" class="muted">
+        ${icon("flame",14,"var(--accent)")}<span class="muted">過去問演習</span>
+      </div>
+      <div class="row" style="gap:10px;">
+        <div class="statBox"><div class="statVal mono">${stats.todayCount}</div><div class="statLabel">今日問</div></div>
+        <div class="statBox"><div class="statVal mono">${stats.weekCount}</div><div class="statLabel">今週問</div></div>
+        <div class="statBox"><div class="statVal mono">${stats.totalCount}</div><div class="statLabel">累計問</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSchedule(){
+  const cp = getCurrentPeriod();
+  return `
+  <div class="col">
+    <div class="muted" style="font-size:12.5px;padding:0 2px;">各期間をタップして学習分野を割り当てられます（複数選択可）</div>
+    ${PERIODS.map(p=>{
+      const assigned = STATE.periodAssignments[p.id]||[];
+      const isCurrent = cp && cp.id===p.id;
+      return `
+      <button class="periodCard" data-act="openPeriod" data-period="${p.id}">
+        <div class="card" style="border:${isCurrent?"1.5px solid var(--accent)":"1px solid var(--border)"};">
+          <div class="row">
+            <div>
+              <div class="muted" style="font-size:11px;margin-bottom:2px;">第${p.id+1}週${isCurrent?`<span style="color:var(--accent);font-weight:700;margin-left:6px;">・今週</span>`:""}</div>
+              <div style="font-size:14.5px;font-weight:700;">${fmtShort(p.start)} 〜 ${fmtShort(p.end)}</div>
+            </div>
+            ${icon("chevronRight",18,"var(--textMuted)")}
+          </div>
+          <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+            ${assigned.length===0 ? `<span class="muted" style="font-size:12.5px;">未設定</span>` :
+              assigned.map(sid=>`<span class="chip" style="border-color:${SUBJECT_MAP[sid].color}66;">${esc(SUBJECT_MAP[sid].name)}</span>`).join("")}
+          </div>
+        </div>
+      </button>`;
+    }).join("")}
+  </div>
+  ${UI.editingPeriod!==null ? renderPeriodModal() : ""}`;
+}
+
+function renderPeriodModal(){
+  const p = PERIODS[UI.editingPeriod];
+  return `
+  <div class="modalOverlay" data-act="closeModal">
+    <div class="modalSheet" onclick="event.stopPropagation()">
+      <div class="row">
+        <div style="font-size:16px;font-weight:800;">${fmtShort(p.start)}〜${fmtShort(p.end)} の分野</div>
+        <button data-act="closeModal">${icon("x",20,"var(--textMuted)")}</button>
+      </div>
+      <div style="margin-top:6px;">
+        ${SUBJECTS.map(s=>{
+          const isSel = UI.periodSelection.includes(s.id);
+          return `
+          <button class="subjectRow ${isSel?"sel":""}" data-act="togglePeriodSubject" data-subject="${s.id}">
+            <span style="display:flex;align-items:center;gap:8px;">
+              <span class="dot" style="width:9px;height:9px;margin:0;background:${s.color};"></span>
+              <span style="font-size:14px;font-weight:500;">${esc(s.name)}</span>
+            </span>
+            ${isSel ? icon("check",16,"var(--accent)") : ""}
+          </button>`;
+        }).join("")}
+      </div>
+      <button class="btnPrimary" style="margin-top:16px;" data-act="savePeriod">保存</button>
+    </div>
+  </div>`;
+}
+
+function renderSubjects(){
+  return `
+  <div class="col" style="gap:10px;">
+    ${SUBJECTS.map(s=>{
+      const d = STATE.subjects[s.id];
+      const isOpen = UI.openSubject===s.id;
+      const progress = Math.round(((statusScore(d.textbook)+statusScore(d.pastExam))/2)*100);
+      return `
+      <div class="card subjectCard">
+        <button class="subjectHead" data-act="toggleSubject" data-subject="${s.id}">
+          <div class="row">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+              <span class="dot" style="width:9px;height:9px;margin:0;background:${s.color};flex-shrink:0;"></span>
+              <span style="font-size:14.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.name)}</span>
+            </div>
+            <span class="mono" style="font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;margin-left:8px;">${progress}%</span>
+          </div>
+          <div style="margin-top:8px;">
+            <div class="progressTrack" style="height:6px;"><div class="progressFill" style="width:${progress}%;height:100%;background:${s.color};"></div></div>
+          </div>
+        </button>
+        ${isOpen ? `
+        <div class="subjectBody">
+          <div class="row"><span style="font-size:13.5px;">参考書</span>${statusChip(d.textbook, s.id, "textbook")}</div>
+          <div class="row"><span style="font-size:13.5px;">分野別過去問</span>${statusChip(d.pastExam, s.id, "pastExam")}</div>
+          <div>
+            <div class="muted" style="font-size:12px;margin-bottom:6px;">メモ</div>
+            <textarea class="textarea" rows="3" placeholder="例）RAID苦手、ハミング符号復習..."
+              data-act="memoInput" data-subject="${s.id}"
+              onblur="updateMemo('${s.id}', this.value)">${esc(d.memo)}</textarea>
+          </div>
+        </div>` : ""}
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+function statusChip(status, subjectId, field){
+  const map = {
+    "未着手":{bg:"var(--cardAlt)", fg:"var(--textMuted)", bd:"var(--border)"},
+    "進行中":{bg:"var(--warningSoft)", fg:"var(--warning)", bd:"var(--warning)"},
+    "完了":{bg:"var(--successSoft)", fg:"var(--success)", bd:"var(--success)"},
+  };
+  const c = map[status];
+  return `<button data-act="cycleStatus" data-subject="${subjectId}" data-field="${field}"
+    style="background:${c.bg};color:${c.fg};border:1px solid ${c.bd};border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:600;">${status}</button>`;
+}
+
+function renderRecord(){
+  const stats = computeStats();
+  const now = new Date();
+  const chartData = [];
+  let max = 1;
+  for(let i=13;i>=0;i--){
+    const d = new Date(now); d.setDate(d.getDate()-i);
+    const ds = toDateStr(d);
+    const c = STATE.examRecords[ds] || 0;
+    if(c>max) max=c;
+    chartData.push({label: fmtShort(ds), count:c});
+  }
+  return `
+  <div class="col">
+    <div class="card">
+      <div class="row" style="gap:10px;">
+        <div class="statBox"><div class="statVal mono">${stats.todayCount}</div><div class="statLabel">今日問</div></div>
+        <div class="statBox"><div class="statVal mono">${stats.weekCount}</div><div class="statLabel">今週問</div></div>
+        <div class="statBox"><div class="statVal mono">${stats.totalCount}</div><div class="statLabel">累計問</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="muted" style="font-size:12px;margin-bottom:10px;">過去問を記録（今日）</div>
+      <div class="row" style="gap:8px;margin-bottom:8px;">
+        ${[1,5,10].map(n=>`<button class="quickBtn" style="background:var(--accentSoft);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 33%, transparent);" data-act="quickAdd" data-n="${n}">+${n}問</button>`).join("")}
+      </div>
+      <div class="row" style="gap:8px;margin-bottom:10px;">
+        ${[1,5,10].map(n=>{
+          const disabled = stats.todayCount<=0;
+          return `<button class="quickBtn" style="background:var(--cardAlt);color:${disabled?"var(--textMuted)":"var(--danger)"};border:1px solid var(--border);opacity:${disabled?0.5:1};" ${disabled?"disabled":""} data-act="quickSub" data-n="${n}">−${n}問</button>`;
+        }).join("")}
+      </div>
+      <div class="muted" style="font-size:11px;margin-bottom:10px;">日付を指定して手動で追加・修正することもできます</div>
+      <div class="row" style="gap:8px;align-items:stretch;">
+        <div class="signToggle">
+          <button class="signBtn" style="background:${UI.sign===1?"var(--accent)":"var(--cardAlt)"};color:${UI.sign===1?"#fff":"var(--textMuted)"};" data-act="setSign" data-sign="1">+</button>
+          <button class="signBtn" style="background:${UI.sign===-1?"var(--danger)":"var(--cardAlt)"};color:${UI.sign===-1?"#fff":"var(--textMuted)"};" data-act="setSign" data-sign="-1">−</button>
+        </div>
+        <input id="dateInput" type="date" class="field" style="flex:1;" value="${todayStr()}" />
+        <input id="countInput" type="number" inputmode="numeric" class="field" style="width:80px;" placeholder="問題数" />
+        <button data-act="manualAdd" style="width:44px;border-radius:10px;background:${UI.sign===1?"var(--accent)":"var(--danger)"};color:#fff;display:flex;align-items:center;justify-content:center;">
+          ${UI.sign===1 ? icon("plus",18,"#fff") : `<span style="font-size:20px;font-weight:800;line-height:1;">−</span>`}
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="muted" style="font-size:12px;margin-bottom:6px;">学習履歴（直近14日）</div>
+      <div class="chart">
+        ${chartData.map(c=>`
+          <div class="barWrap">
+            <div class="bar" title="${c.count}問" style="height:${max>0?Math.max(2,(c.count/max)*100):2}%;"></div>
+            <div class="barLabel">${c.label}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSettingsModal(){
+  return `
+  <div class="modalOverlay" data-act="closeSettings">
+    <div class="modalSheet" onclick="event.stopPropagation()">
+      <div class="row">
+        <div style="font-size:16px;font-weight:800;">設定</div>
+        <button data-act="closeSettings">${icon("x",20,"var(--textMuted)")}</button>
+      </div>
+      <div class="col" style="margin-top:14px;gap:16px;">
+        <div>
+          <div class="muted" style="font-size:12px;margin-bottom:6px;">試験日</div>
+          <input id="examDateInput" type="date" class="field" value="${STATE.examDate||""}" onchange="setExamDate(this.value)" />
+          <div class="muted" style="font-size:11px;margin-top:6px;">2026年度前期試験は2026年11月頃実施予定ですが、詳細日程は本稿執筆時点で未発表です。決まり次第、実際の受験日を入力してください。</div>
+        </div>
+        <div class="row">
+          <div style="font-size:13.5px;">ダークモード</div>
+          <button class="toggleSwitch" style="background:${STATE.darkMode?"var(--accent)":"var(--cardAlt)"};" data-act="toggleDark">
+            <span class="toggleKnob" style="left:${STATE.darkMode?"24px":"2px"};"></span>
+          </button>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:14px;">
+          ${UI.confirmReset ? `
+            <div class="col" style="gap:8px;">
+              <div style="font-size:12.5px;">本当にすべての進捗・記録・メモを削除しますか？この操作は取り消せません。</div>
+              <div class="row" style="gap:8px;">
+                <button data-act="cancelReset" style="flex:1;padding:9px 0;border-radius:10px;background:var(--cardAlt);border:1px solid var(--border);font-size:13px;">キャンセル</button>
+                <button data-act="confirmReset" style="flex:1;padding:9px 0;border-radius:10px;background:var(--danger);color:#fff;font-size:13px;font-weight:700;">削除する</button>
+              </div>
+            </div>
+          ` : `<button data-act="askReset" style="font-size:13px;color:var(--danger);font-weight:600;">すべてのデータをリセット</button>`}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   メイン描画
+   ============================================================ */
+const TABS = [
+  {id:"home", label:"ホーム", icon:"home"},
+  {id:"schedule", label:"スケジュール", icon:"calendar"},
+  {id:"subjects", label:"分野", icon:"book"},
+  {id:"record", label:"記録", icon:"chart"},
+];
+
+function render(){
+  document.body.className = STATE.darkMode ? "" : "light";
+  const app = document.getElementById("app");
+  let bodyHtml = "";
+  if(UI.tab==="home") bodyHtml = renderHome();
+  else if(UI.tab==="schedule") bodyHtml = renderSchedule();
+  else if(UI.tab==="subjects") bodyHtml = renderSubjects();
+  else if(UI.tab==="record") bodyHtml = renderRecord();
+
+  app.innerHTML = `
+    <div class="header">
+      <div>
+        <div class="headerTitle">応用情報 午前対策</div>
+        <div class="headerSub">学習進捗トラッカー</div>
+      </div>
+      <div class="headerBtns">
+        <button class="iconBtn" data-act="toggleDark">${STATE.darkMode?icon("sun",16,"var(--textMuted)"):icon("moon",16,"var(--textMuted)")}</button>
+        <button class="iconBtn" data-act="openSettings">${icon("settings",16,"var(--textMuted)")}</button>
+      </div>
+    </div>
+    <div class="main">${bodyHtml}</div>
+    <div class="bottomNav">
+      <div class="bottomNavInner">
+        ${TABS.map(t=>`
+          <button class="navBtn" data-act="setTab" data-tab="${t.id}">
+            ${icon(t.icon,20, UI.tab===t.id?"var(--accent)":"var(--textMuted)")}
+            <span class="navLabel" style="color:${UI.tab===t.id?"var(--accent)":"var(--textMuted)"};font-weight:${UI.tab===t.id?700:500};">${t.label}</span>
+          </button>
+        `).join("")}
+      </div>
+    </div>
+    ${UI.settingsOpen ? renderSettingsModal() : ""}
+  `;
+}
+
+/* ============================================================
+   イベント委譲
+   ============================================================ */
+document.addEventListener("click", (e)=>{
+  const el = e.target.closest("[data-act]");
+  if(!el) return;
+  const act = el.dataset.act;
+
+  if(act==="setTab"){ UI.tab = el.dataset.tab; render(); }
+  else if(act==="toggleTask"){ toggleTask(el.dataset.subject, el.dataset.field); }
+  else if(act==="openPeriod"){ const pid=Number(el.dataset.period); UI.editingPeriod=pid; UI.periodSelection=[...(STATE.periodAssignments[pid]||[])]; render(); }
+  else if(act==="closeModal"){ UI.editingPeriod=null; render(); }
+  else if(act==="togglePeriodSubject"){ const sid=el.dataset.subject; UI.periodSelection = UI.periodSelection.includes(sid) ? UI.periodSelection.filter(x=>x!==sid) : [...UI.periodSelection, sid]; render(); }
+  else if(act==="savePeriod"){ STATE.periodAssignments[UI.editingPeriod] = UI.periodSelection; saveState(); UI.editingPeriod=null; render(); }
+  else if(act==="toggleSubject"){ const sid=el.dataset.subject; UI.openSubject = UI.openSubject===sid ? null : sid; render(); }
+  else if(act==="cycleStatus"){ cycleStatus(el.dataset.subject, el.dataset.field); }
+  else if(act==="quickAdd"){ addRecord(todayStr(), Number(el.dataset.n)); }
+  else if(act==="quickSub"){ if(!el.disabled) addRecord(todayStr(), -Number(el.dataset.n)); }
+  else if(act==="setSign"){ UI.sign = Number(el.dataset.sign); render(); }
+  else if(act==="manualAdd"){
+    const dateInput = document.getElementById("dateInput");
+    const countInput = document.getElementById("countInput");
+    const n = parseInt(countInput.value,10);
+    if(n && n>0){ addRecord(dateInput.value || todayStr(), n*UI.sign); }
+  }
+  else if(act==="openSettings"){ UI.settingsOpen=true; UI.confirmReset=false; render(); }
+  else if(act==="closeSettings"){ UI.settingsOpen=false; render(); }
+  else if(act==="toggleDark"){ toggleDark(); }
+  else if(act==="askReset"){ UI.confirmReset=true; render(); }
+  else if(act==="cancelReset"){ UI.confirmReset=false; render(); }
+  else if(act==="confirmReset"){ resetAll(); }
+});
+
+render();
+</script>
+</body>
+</html>
