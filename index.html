@@ -139,7 +139,7 @@ function defaultState(){
 }
 
 /* ============================================================
-   状態の読み込み・保存（localStorage = Safariでも永続化）
+   状態の読み込み・保存(localStorage = Safariでも永続化)
    ============================================================ */
 function loadState(){
   try{
@@ -160,7 +160,7 @@ function saveState(){
 }
 
 let STATE = loadState();
-let UI = { tab:"home", settingsOpen:false, editingPeriod:null, periodSelection:[], openSubject:null, sign:1 };
+let UI = { tab:"home", settingsOpen:false, editingPeriod:null, periodSelection:[], openSubject:null, sign:1, recordDate:todayStr(), recordCount:"" };
 
 /* ============================================================
    ユーティリティ
@@ -185,7 +185,7 @@ function getWeekRange(period){
 function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
 /* ============================================================
-   アイコン（シンプルなラインSVG）
+   アイコン(シンプルなラインSVG)
    ============================================================ */
 function icon(name, size=18, color="currentColor"){
   const s=`width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
@@ -257,7 +257,7 @@ function addRecord(date, delta){
 }
 function setExamDate(d){ STATE.examDate = d || null; saveState(); render(); }
 function toggleDark(){ STATE.darkMode = !STATE.darkMode; saveState(); render(); }
-function resetAll(){ STATE = defaultState(); saveState(); UI = {tab:"home",settingsOpen:false,editingPeriod:null,periodSelection:[],openSubject:null,sign:1}; render(); }
+function resetAll(){ STATE = defaultState(); saveState(); UI = {tab:"home",settingsOpen:false,editingPeriod:null,periodSelection:[],openSubject:null,sign:1,recordDate:todayStr(),recordCount:""}; render(); }
 
 /* ============================================================
    画面ごとの描画関数
@@ -278,7 +278,7 @@ function renderHome(){
           <span class="mono" style="font-size:40px;font-weight:800;color:var(--accent);line-height:1;">${days}</span>
           <span style="font-size:13px;" class="muted">日</span>
         </div>` : `
-        <div style="font-size:13px;" class="muted">試験日が未設定です。右上の設定から登録できます（2026年度前期試験は2026年11月頃実施予定・詳細未発表）。</div>
+        <div style="font-size:13px;" class="muted">試験日が未設定です。右上の設定から登録できます(2026年度前期試験は2026年11月頃実施予定・詳細未発表)。</div>
       `}
       <div style="margin-top:10px;">
         <div class="row" style="font-size:12px;margin-bottom:6px;"><span class="muted">全体進捗率</span><span style="font-weight:700;">${stats.overallProgress}%</span></div>
@@ -287,7 +287,7 @@ function renderHome(){
     </div>
 
     <div class="card">
-      <div class="muted" style="font-size:12px;margin-bottom:8px;">現在学習中の分野${cp?` （${fmtShort(cp.start)}〜${fmtShort(cp.end)}）`:""}</div>
+      <div class="muted" style="font-size:12px;margin-bottom:8px;">現在学習中の分野${cp?` (${fmtShort(cp.start)}〜${fmtShort(cp.end)})`:""}</div>
       ${assigned.length>0 ? `
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
           ${assigned.map(sid=>`<span class="chip" style="border-color:${SUBJECT_MAP[sid].color}66;"><span class="dot" style="background:${SUBJECT_MAP[sid].color};"></span>${esc(SUBJECT_MAP[sid].name)}</span>`).join("")}
@@ -330,7 +330,7 @@ function renderSchedule(){
   const cp = getCurrentPeriod();
   return `
   <div class="col">
-    <div class="muted" style="font-size:12.5px;padding:0 2px;">各期間をタップして学習分野を割り当てられます（複数選択可）</div>
+    <div class="muted" style="font-size:12.5px;padding:0 2px;">各期間をタップして学習分野を割り当てられます(複数選択可)</div>
     ${PERIODS.map(p=>{
       const assigned = STATE.periodAssignments[p.id]||[];
       const isCurrent = cp && cp.id===p.id;
@@ -358,8 +358,8 @@ function renderSchedule(){
 function renderPeriodModal(){
   const p = PERIODS[UI.editingPeriod];
   return `
-  <div class="modalOverlay" data-act="closeModal">
-    <div class="modalSheet" onclick="event.stopPropagation()">
+  <div class="modalOverlay" data-act="backdropCloseModal">
+    <div class="modalSheet">
       <div class="row">
         <div style="font-size:16px;font-weight:800;">${fmtShort(p.start)}〜${fmtShort(p.end)} の分野</div>
         <button data-act="closeModal">${icon("x",20,"var(--textMuted)")}</button>
@@ -409,7 +409,7 @@ function renderSubjects(){
           <div class="row"><span style="font-size:13.5px;">分野別過去問</span>${statusChip(d.pastExam, s.id, "pastExam")}</div>
           <div>
             <div class="muted" style="font-size:12px;margin-bottom:6px;">メモ</div>
-            <textarea class="textarea" rows="3" placeholder="例）RAID苦手、ハミング符号復習..."
+            <textarea class="textarea" rows="3" placeholder="例)RAID苦手、ハミング符号復習..."
               data-act="memoInput" data-subject="${s.id}"
               onblur="updateMemo('${s.id}', this.value)">${esc(d.memo)}</textarea>
           </div>
@@ -452,7 +452,7 @@ function renderRecord(){
     </div>
 
     <div class="card">
-      <div class="muted" style="font-size:12px;margin-bottom:10px;">過去問を記録（今日）</div>
+      <div class="muted" style="font-size:12px;margin-bottom:10px;">過去問を記録(今日)</div>
       <div class="row" style="gap:8px;margin-bottom:8px;">
         ${[1,5,10].map(n=>`<button class="quickBtn" style="background:var(--accentSoft);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 33%, transparent);" data-act="quickAdd" data-n="${n}">+${n}問</button>`).join("")}
       </div>
@@ -468,8 +468,8 @@ function renderRecord(){
           <button class="signBtn" style="background:${UI.sign===1?"var(--accent)":"var(--cardAlt)"};color:${UI.sign===1?"#fff":"var(--textMuted)"};" data-act="setSign" data-sign="1">+</button>
           <button class="signBtn" style="background:${UI.sign===-1?"var(--danger)":"var(--cardAlt)"};color:${UI.sign===-1?"#fff":"var(--textMuted)"};" data-act="setSign" data-sign="-1">−</button>
         </div>
-        <input id="dateInput" type="date" class="field" style="flex:1;" value="${todayStr()}" />
-        <input id="countInput" type="number" inputmode="numeric" class="field" style="width:80px;" placeholder="問題数" />
+        <input id="dateInput" type="date" class="field" style="flex:1;" value="${UI.recordDate}" oninput="UI.recordDate=this.value" />
+        <input id="countInput" type="number" inputmode="numeric" class="field" style="width:80px;" placeholder="問題数" value="${esc(UI.recordCount)}" oninput="UI.recordCount=this.value" />
         <button data-act="manualAdd" style="width:44px;border-radius:10px;background:${UI.sign===1?"var(--accent)":"var(--danger)"};color:#fff;display:flex;align-items:center;justify-content:center;">
           ${UI.sign===1 ? icon("plus",18,"#fff") : `<span style="font-size:20px;font-weight:800;line-height:1;">−</span>`}
         </button>
@@ -477,7 +477,7 @@ function renderRecord(){
     </div>
 
     <div class="card">
-      <div class="muted" style="font-size:12px;margin-bottom:6px;">学習履歴（直近14日）</div>
+      <div class="muted" style="font-size:12px;margin-bottom:6px;">学習履歴(直近14日)</div>
       <div class="chart">
         ${chartData.map(c=>`
           <div class="barWrap">
@@ -492,8 +492,8 @@ function renderRecord(){
 
 function renderSettingsModal(){
   return `
-  <div class="modalOverlay" data-act="closeSettings">
-    <div class="modalSheet" onclick="event.stopPropagation()">
+  <div class="modalOverlay" data-act="backdropCloseSettings">
+    <div class="modalSheet">
       <div class="row">
         <div style="font-size:16px;font-weight:800;">設定</div>
         <button data-act="closeSettings">${icon("x",20,"var(--textMuted)")}</button>
@@ -513,7 +513,7 @@ function renderSettingsModal(){
         <div style="border-top:1px solid var(--border);padding-top:14px;">
           ${UI.confirmReset ? `
             <div class="col" style="gap:8px;">
-              <div style="font-size:12.5px;">本当にすべての進捗・記録・メモを削除しますか？この操作は取り消せません。</div>
+              <div style="font-size:12.5px;">本当にすべての進捗・記録・メモを削除しますか?この操作は取り消せません。</div>
               <div class="row" style="gap:8px;">
                 <button data-act="cancelReset" style="flex:1;padding:9px 0;border-radius:10px;background:var(--cardAlt);border:1px solid var(--border);font-size:13px;">キャンセル</button>
                 <button data-act="confirmReset" style="flex:1;padding:9px 0;border-radius:10px;background:var(--danger);color:#fff;font-size:13px;font-weight:700;">削除する</button>
@@ -582,7 +582,7 @@ document.addEventListener("click", (e)=>{
   if(act==="setTab"){ UI.tab = el.dataset.tab; render(); }
   else if(act==="toggleTask"){ toggleTask(el.dataset.subject, el.dataset.field); }
   else if(act==="openPeriod"){ const pid=Number(el.dataset.period); UI.editingPeriod=pid; UI.periodSelection=[...(STATE.periodAssignments[pid]||[])]; render(); }
-  else if(act==="closeModal"){ UI.editingPeriod=null; render(); }
+  else if(act==="closeModal" || act==="backdropCloseModal"){ UI.editingPeriod=null; render(); }
   else if(act==="togglePeriodSubject"){ const sid=el.dataset.subject; UI.periodSelection = UI.periodSelection.includes(sid) ? UI.periodSelection.filter(x=>x!==sid) : [...UI.periodSelection, sid]; render(); }
   else if(act==="savePeriod"){ STATE.periodAssignments[UI.editingPeriod] = UI.periodSelection; saveState(); UI.editingPeriod=null; render(); }
   else if(act==="toggleSubject"){ const sid=el.dataset.subject; UI.openSubject = UI.openSubject===sid ? null : sid; render(); }
@@ -591,13 +591,11 @@ document.addEventListener("click", (e)=>{
   else if(act==="quickSub"){ if(!el.disabled) addRecord(todayStr(), -Number(el.dataset.n)); }
   else if(act==="setSign"){ UI.sign = Number(el.dataset.sign); render(); }
   else if(act==="manualAdd"){
-    const dateInput = document.getElementById("dateInput");
-    const countInput = document.getElementById("countInput");
-    const n = parseInt(countInput.value,10);
-    if(n && n>0){ addRecord(dateInput.value || todayStr(), n*UI.sign); }
+    const n = parseInt(UI.recordCount,10);
+    if(n && n>0){ UI.recordCount=""; addRecord(UI.recordDate || todayStr(), n*UI.sign); }
   }
   else if(act==="openSettings"){ UI.settingsOpen=true; UI.confirmReset=false; render(); }
-  else if(act==="closeSettings"){ UI.settingsOpen=false; render(); }
+  else if(act==="closeSettings" || act==="backdropCloseSettings"){ UI.settingsOpen=false; render(); }
   else if(act==="toggleDark"){ toggleDark(); }
   else if(act==="askReset"){ UI.confirmReset=true; render(); }
   else if(act==="cancelReset"){ UI.confirmReset=false; render(); }
